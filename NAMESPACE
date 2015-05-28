@@ -1,0 +1,22 @@
+useDynLib(forestFloor)
+
+importFrom(Rcpp, evalCpp)
+importFrom(randomForest, randomForest)
+importFrom(trimTrees, cinbag)
+import(rgl)
+import(kknn)
+
+S3method(plot,forestFloor)
+S3method(print,forestFloor)
+export(forestFloor,
+       plot.forestFloor,
+       print.forestFloor,
+       box.outliers,
+       recTree,
+       vec.plot,
+       convolute_ff,
+       convolute_ff2,
+       convolute_grid,
+       show3d_new,
+       fcol)
+

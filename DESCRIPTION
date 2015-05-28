@@ -1,0 +1,21 @@
+Package: forestFloor
+Type: Package
+Title: Visualizes Random Forests with Feature Contributions
+Version: 1.4
+Date: 2015-05-19
+Author: Soeren Havelund Welling
+Maintainer: Soeren Havelund Welling <SOWE@DTU.DK>
+Depends:
+Suggests:
+Description: Enables user to form appropriate visualization of high dimensional mapping curvature of random forests.
+SystemRequirements: OpenGL, GLU Library, zlib
+License: GPL-2
+Imports: Rcpp (>= 0.11.6), randomForest, rgl, kknn, trimTrees
+LinkingTo: Rcpp
+Repository: CRAN
+Repository/R-Forge/Project: forestfloor
+Repository/R-Forge/Revision: 118
+Repository/R-Forge/DateTimeStamp: 2015-05-28 07:26:59
+Date/Publication: 2015-05-28 10:41:47
+NeedsCompilation: yes
+Packaged: 2015-05-28 07:45:11 UTC; rforge
