@@ -2,11 +2,11 @@
 # Methods:
 #m1 print output
 print.forestFloor = function(x,...) {
- cat("this is a forestFloor('x') object \n
-this object can be plotted in 2D with plot(x), see help(plot.forestFloor) \n
-this object can be plotted in 3D with show3d(x), see help(show3d) \n
-\n
-x contains following internal elements: \n ",with(x,ls()))
+  cat("this is a forestFloor('x') object \n
+      this object can be plotted in 2D with plot(x), see help(plot.forestFloor) \n
+      this object can be plotted in 3D with show3d(x), see help(show3d) \n
+      \n
+      x contains following internal elements: \n ",with(x,ls()))
 }
 
 #m2 plot output
@@ -20,40 +20,32 @@ plot.forestFloor = function(x,
                             #external.col=NULL, #remove
                             cropXaxes=NULL, 
                             crop_limit=4,
-                            compute_GOF=FALSE,
-                            plot_GOF=NULL,
+                            plot_GOF=FALSE,
                             GOF_col = "#33333399",
                             ...)
-  {
+{
   
   pars = par(no.readonly = TRUE) #save previous graphical par(emeters)
-  par(mar=c(2,2,1,1),cex=.5) #changing par, narrowing plot margins, smaller points
+  par(mar=c(2.2,2.2,1.2,1.2),cex=.5) #changing par, narrowing plot margins, smaller points
   
   #short for phys.val and feature contribution in object
   
   X = x$X
   FCs = x$FCmatrix
-  if(compute_GOF) { 
+  if(plot_GOF && is.null(x$FCfit)) { 
     #compute goodness of fit of one way presentation
-    #leave-one-out k-nearest neighbor(guassian kernel), kknn package 
+    #leave-one-out k-nearest neighbor(guassian kernel), kknn package
+    print("compute goodness-of-fit with leave-one-out k-nearest neighbor(guassian kernel), kknn package")
     if(is.null(x$FCfit)) x = convolute_ff(x) 
     #retrieve fitted values and compare to actual feature contributions for every variable
-    GOFs = sapply(1:dim(X)[2],function(j) cor(x$FCfit[,j],x$FCmatrix[,j])^2)
-    FCfits = x$FCfit
   }
+  if(plot_GOF) GOFs = sapply(1:dim(X)[2],function(j) cor(x$FCfit[,j],x$FCmatrix[,j])^2)
   
-  #plot goodness of fit only if available and not turned off
-  if(is.null(x$FCfit)) {
-    plot_GOF=FALSE
-    warning("cannot plot GOF without compute_GOF = TRUE")
-  } else {
-    if(is.null(plot_GOF)) plot_GOF=TRUE
-  }
   
-#obsolete
-#   #Auto setting transparancy variable. The more obs, the more transparrency
-#   if(alpha=="auto") alpha = min(max(400/dim(X)[1],0.2),1)
-#   
+  #obsolete
+  #   #Auto setting transparancy variable. The more obs, the more transparrency
+  #   if(alpha=="auto") alpha = min(max(400/dim(X)[1],0.2),1)
+  #   
   #If no sequnce, choosing to plot first 18 variables
   if(is.null(plot_seq)) plot_seq = 1:min(dim(X)[2],24)
   
@@ -101,13 +93,13 @@ plot.forestFloor = function(x,
                                        factor=jitter.template[imp.ind[i]]*2),
         partial.contribution  = FCs[,imp.ind[i]]
       ),
-      main = if(!compute_GOF) names(imp)[imp.ind[i]] else {
+      main = if(!plot_GOF) names(imp)[imp.ind[i]] else {
         imp=imp
         imp.ind = imp.ind
         i=i
         theName = names(imp)[imp.ind[i]]
         theNumber = round(GOFs[imp.ind[i]],2)
-        paste0(theName,",R^2=",theNumber)
+        paste0(theName,",R^2= ",theNumber)
       },
       ylim = list(NULL,range(FCs))[[limitY+1]], #same Yaxis if limitY == TRUE
       xlim = list(NULL,range(Xsd))[[limitX+1]],
@@ -116,14 +108,14 @@ plot.forestFloor = function(x,
     if(plot_GOF) {
       X_unique = sort(unique(X[,imp.ind[i]]))
       X_unique.ind = match(X_unique,X[,imp.ind[i]])
-      FC_match = FCfits[X_unique.ind,imp.ind[i]]
-      points(X_unique,FC_match,col=GOF_col,type="l",lwd=3)
+      FC_match = x$FCfit[X_unique.ind,imp.ind[i]]
+      points(X_unique,FC_match,col=GOF_col,type="l",lwd=2)
     }
   }
   pars = with(pars,if(exists("pin")) {
     rm(pin)
     return(mget(ls()))
-    }) 
+  }) 
   par(pars)
 }
 
@@ -141,7 +133,7 @@ show3d_new = function(ff,
                       kknnGrid.args = alist(),  
                       plot.rgl.args = alist(),  
                       surf.rgl.args = alist()   
-                      ) {
+) {
   if(class(ff)!="forestFloor") stop("ff, must be of class forestFloor")
   if(length(Xi)!=2) {
     warning("Xi should be of length 2, if 1 first elements is used twice, if >2 only two first elements is used")
@@ -175,12 +167,12 @@ show3d_new = function(ff,
   xaxis = as.numeric.factor(xaxis)
   yaxis = as.numeric.factor(yaxis)
   zaxis = as.numeric.factor(zaxis)
-
+  
   #plotting points
   #merge current/user, wrapper arguments for plot3d in proritized order
   wrapper_arg = list(x=xaxis, y=yaxis, z=zaxis, col=col,
-                xlab=names(X)[1],ylab=names(X)[2],zlab=paste(names(ff$X[,FCi]),collapse=" - "),
-                alpha=.4,size=3,scale=.7,avoidFreeType = TRUE,add=FALSE)
+                     xlab=names(X)[1],ylab=names(X)[2],zlab=paste(names(ff$X[,FCi]),collapse=" - "),
+                     alpha=.4,size=3,scale=.7,avoidFreeType = TRUE,add=FALSE)
   calling_arg = append.overwrite.alists(plot.rgl.args,wrapper_arg)
   do.call("plot3d",args=calling_arg)
   
@@ -188,10 +180,10 @@ show3d_new = function(ff,
   #merge arguments again
   if(surface) {
     #compute grid
-  grid = convolute_grid(ff, Xvars=Xi,FCvars=FCi, limit=limit, grid=grid.lines, zoom=zoom,  userArgs.kknn = kknnGrid.args)
-  wrapper_arg = alist(x=unique(grid[,2]),y=unique(grid[,3]),z=grid[,1],add=TRUE,alpha=0.2,col=c("grey","black")) #args defined in this wrapper function
-  calling_arg = append.overwrite.alists(surf.rgl.args,wrapper_arg)   
-  do.call("persp3d",args=calling_arg)
+    grid = convolute_grid(ff, Xvars=Xi,FCvars=FCi, limit=limit, grid=grid.lines, zoom=zoom,  userArgs.kknn = kknnGrid.args)
+    wrapper_arg = alist(x=unique(grid[,2]),y=unique(grid[,3]),z=grid[,1],add=TRUE,alpha=0.2,col=c("grey","black")) #args defined in this wrapper function
+    calling_arg = append.overwrite.alists(surf.rgl.args,wrapper_arg)   
+    do.call("persp3d",args=calling_arg)
   }
 }
 
@@ -248,7 +240,7 @@ convolute_ff = function(ff,
                         these.vars=NULL,
                         k.fun=function() round(sqrt(n.obs)/2),
                         userArgs.kknn = alist(kernel="gaussian")
-                        ) {
+) {
   
   n.obs=dim(ff$X)[1]
   n.vars=dim(ff$X)[2]
@@ -280,15 +272,15 @@ convolute_ff = function(ff,
 #f3 input a forestFloor object, as convolute_ff but do not iterate all variables. Instead wrapper will use
 #kknn to convolute a designated featureContribution with designated features - oftenly the corresponding features.
 convolute_ff2 = function(ff,
-                        Xvars,
-                        FCvars = NULL,
-                        k.fun=function() round(sqrt(n.obs)/2),
-                        userArgs.kknn = alist(kernel="gaussian")
+                         Xvars,
+                         FCvars = NULL,
+                         k.fun=function() round(sqrt(n.obs)/2),
+                         userArgs.kknn = alist(kernel="gaussian")
 ) {
   if(is.null(FCvars)) FCvars = Xvars
   n.obs=dim(ff$X)[1]
   k=k.fun()
-    
+  
   #merge user and wrapper args
   defaultArgs.kknn = alist(formula=fc~.,data=Data,kmax=k,kernel="gaussian")
   kknn.args=append.overwrite.alists(userArgs.kknn,defaultArgs.kknn)
@@ -302,9 +294,9 @@ convolute_ff2 = function(ff,
   x = ff$X[,Xvars]
   
   #compute topology
-    Data = data.frame(fc=fc,x=x)
-    knn.obj = do.call("train.kknn",kknn.args)$fitted.values
-    out = knn.obj[[length(knn.obj)]]
+  Data = data.frame(fc=fc,x=x)
+  knn.obj = do.call("train.kknn",kknn.args)$fitted.values
+  out = knn.obj[[length(knn.obj)]]
 }
 
 #f4 input a forestFloor object, as convolute_ff but do not iterate all variables. Instead wrapper will use
@@ -345,19 +337,19 @@ convolute_grid = function(ff,
     names(gridX) = names(X)
     
     ##WOUPS NEVERMIND it worked...
-#     #could not make list of vectors work with expand.grid as doc promises
-#     #this hack calls expand.grid with specified arguments
-#     
-#     #hack - make charecter string of appropiate code
-#     run.this = "alist("
-#     for(i in 1:dim(X)[2]) run.this = paste(run.this,names(X)[i]," = ite.val[,",i,"],",sep="")
-#     run.this = substr(run.this,1,nchar(run.this)-1)
-#     run.this = paste(run.this,")")
-#     #hack - parse and evaluate string into a argument list of one argument for each dimension
-#     arg.list = eval(parse(text=run.this))
-#     #call expand.grid with specified arguments
-#     gridX=as.data.frame(do.call(expand.grid,arg.list)) #grid coordinates
-
+    #     #could not make list of vectors work with expand.grid as doc promises
+    #     #this hack calls expand.grid with specified arguments
+    #     
+    #     #hack - make charecter string of appropiate code
+    #     run.this = "alist("
+    #     for(i in 1:dim(X)[2]) run.this = paste(run.this,names(X)[i]," = ite.val[,",i,"],",sep="")
+    #     run.this = substr(run.this,1,nchar(run.this)-1)
+    #     run.this = paste(run.this,")")
+    #     #hack - parse and evaluate string into a argument list of one argument for each dimension
+    #     arg.list = eval(parse(text=run.this))
+    #     #call expand.grid with specified arguments
+    #     gridX=as.data.frame(do.call(expand.grid,arg.list)) #grid coordinates
+    
   } else {
     gridX = grid
   }
@@ -369,7 +361,7 @@ convolute_grid = function(ff,
   #merge user args and args of this wrapper function, user args have priority
   defaultArgs.kknn = alist(formula=fc~.,train=Data,k=k,kernel="gaussian",test=gridX)
   kknn.args=append.overwrite.alists(userArgs.kknn,defaultArgs.kknn)
-    
+  
   #execute kknn function and retrive convolution
   gridFC = do.call("kknn",kknn.args)$fitted.values
   
@@ -406,13 +398,13 @@ box.outliers = function(x,limit=1.5,normalize=TRUE) {
   } else {
     obs=attributes(sx)$"dim"[1]
     if(dim(sx)[2]>1) {
-    sx = sx * t(replicate(obs,attributes(sx)$"scaled:scale")) +
-              t(replicate(obs,attributes(sx)$"scaled:center"))
+      sx = sx * t(replicate(obs,attributes(sx)$"scaled:scale")) +
+        t(replicate(obs,attributes(sx)$"scaled:center"))
     } else {
-    sx  = sx * attributes(sx)$"scaled:scale" + attributes(sx)$"scaled:center" 
+      sx  = sx * attributes(sx)$"scaled:scale" + attributes(sx)$"scaled:center" 
     }
   }
-
+  
   if(class(x)=="data.frame") {
     sx = as.data.frame(sx,row.names=row.names(x))
     names(sx) = names(x)
@@ -601,7 +593,7 @@ fcol = function(ff,
     if(dim(len.colM)[2]==1) nX = as.numeric(len.colM[,1]) else nX = as.numeric(apply(len.colM,1,mean))
     hsvcol    = t(sapply(nX,function(x) rgb2hsv(x^RGB.exp,
                                                 1-x^RGB.exp-(1-x)^RGB.exp,
-                                               (1-x)^RGB.exp)))
+                                                (1-x)^RGB.exp)))
     hue.vec = hsvcol[,1] * hue.range + hue
     hue.vec[hue.vec>1] = hue.vec[hue.vec>1] - floor(hue.vec[hue.vec>1])
     hsvcol[,1] = hue.vec
@@ -612,11 +604,11 @@ fcol = function(ff,
     hsvcol[,3] = span(hsvcol[,3],brightness,bri.range)
     hsvcol[,3] = contain(hsvcol[,3])
     colours = apply(hsvcol,1,function(x) hsv(x[1],x[2],x[3],alpha=alpha))
-#     a = mget(ls())
-#     print(str(a))
+    #     a = mget(ls())
+    #     print(str(a))
     return(colours) #function terminates with these colours
   }
-    
+  
   ############
   ##Colour system B: Hue, saturation, value, consist of a 1D, 2D and 3D scale
   
@@ -702,15 +694,15 @@ forestFloor = function(rfo,X,calc_np=FALSE) {
   
   #check the RFobject have a inbag
   if(is.null(rfo$inbag)) stop("input randomForest-object have no inbag, set keep.inbag=T,
-try, randomForest(X,Y,keep.inbag=T) for regression where Y is numeric
-and, cinbag(X,Y,keep.inbag=T,keep.forest=T) for binary-class where Y is factor
-..cinbag is from trimTrees package...
-error condition: if(is.null(rfo$inbag))")
-   
+                              try, randomForest(X,Y,keep.inbag=T) for regression where Y is numeric
+                              and, cinbag(X,Y,keep.inbag=T,keep.forest=T) for binary-class where Y is factor
+                              ..cinbag is from trimTrees package...
+                              error condition: if(is.null(rfo$inbag))")
+  
   #make node status a integer matrix
   ns = rfo$forest$nodestatus
   storage.mode(ns) = "integer"
-   
+  
   
   #translate binary classification RF-object, to regression mode
   if(rfo$type=="classification") {
@@ -723,21 +715,21 @@ error condition: if(is.null(rfo$inbag))")
     rfo$forest$rightDaughter = rfo$forest$treemap[,2,] 
     ns[ns==1] = -3  ##translate nodestatus representation to regression mode
     if(is.null("rfo$inbagCount")) stop("classification topology not supported with randomForest() {randomForest}
-Grow forest with cinbag::trimTrees instead of randomForest(). The two
-functions are identical, except cinbag() entails a more detailed inbag record,
-which is needed to estimate binary node probabilities.
-error condition:  if(is.null('rfo$inbagCount'))")
+                                       Grow forest with cinbag::trimTrees instead of randomForest(). The two
+                                       functions are identical, except cinbag() entails a more detailed inbag record,
+                                       which is needed to estimate binary node probabilities.
+                                       error condition:  if(is.null('rfo$inbagCount'))")
     
     if(!calc_np) stop("node predictions must be re-calculated for random forest of type classification, set calc_np=T)
-error conditions: if(!calc_np && rfo$type='classification')")
+                      error conditions: if(!calc_np && rfo$type='classification')")
     
     inbag = rfo$inbagCount
-    } else {
+  } else {
     Y=rfo$y
     inbag = rfo$inbag
   }
-
-
+  
+  
   #preparing data, indice-correction could be moved to C++
   #a - This should be fethed from RF-object, flat interface
   ld = rfo$forest$leftDaughter-1 #indice correction, first element is 0 in C++ and 1 in R.
@@ -756,14 +748,14 @@ error conditions: if(!calc_np && rfo$type='classification')")
   storage.mode(Yd) = "double"
   ot  = rfo$oob.times
   storage.mode(ot) = "integer"
- 
- 
+  
+  
   ##recording types of variables
   xlevels = unlist(lapply(rfo$forest$xlevels,length),use.names=F)
   xl = xlevels
   storage.mode(xl) = "integer"
   varsToBeConverted = xlevels>1
-
+  
   ##Converting X to Xd, all factors change to level numbers
   Xd=X
   for(i in 1:dim(Xd)[2]) {
@@ -780,7 +772,7 @@ error conditions: if(!calc_np && rfo$type='classification')")
   
   #should activities of nodes be reestimated(true) or reused from randomForest object(false)
   calculate_node_pred=calc_np
-    
+  
   # C++ function, recursively finding increments of all nodes of all trees
   # where OOB samples are present. vars, obs and ntree is "passed by number"
   # Anything else is passed by reference. Found increments are imediately
@@ -808,7 +800,7 @@ error conditions: if(!calc_np && rfo$type='classification')")
   
   
   
-#writing out list
+  #writing out list
   imp = as.matrix(rfo$importance)[,1]
   out = list(X=X,Y=Y,
              importance = imp,

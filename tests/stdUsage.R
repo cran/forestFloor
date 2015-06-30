@@ -19,14 +19,18 @@ ff = forestFloor(rfo,X)
 print(ff) 
 
 #plot partial functions of most important variables first
-plot(ff) 
+plot(ff,order_by_importance=TRUE) 
 
 #Non interacting functions are well displayed, whereas X3 and X4 are not
 #by applying different colourgradient, interactions reveal themself 
-Col = fcol(ff,3,orderByImportance=FALSE)
-plot(ff,col=Col,compute_GOF=T) 
+#also a k-nearest neighbor fit is applied to evaluate goodness of fit
+Col=fcol(ff,3,orderByImportance=FALSE)
+plot(ff,col=Col,plot_GOF=TRUE) 
 
-
+#if ever needed, k-nearest neighbor parameters for goodness-of-fit can be access through convolute_ff
+#a new fit will be calculated and added to forstFloor object as ff$FCfit
+ff = convolute_ff(ff,userArgs.kknn=alist(kernel="epanechnikov",kmax=5))
+plot(ff,col=Col,plot_GOF=TRUE)
 
 #in 3D the interaction between X3 and X reveals itself completely
 show3d_new(ff,3:4,col=Col,plot.rgl=list(size=5),sortByImportance=FALSE) 

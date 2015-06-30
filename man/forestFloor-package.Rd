@@ -1,4 +1,5 @@
 \name{forestFloor-package}
+\alias{forestFloorPackage}
 \docType{package}
 \title{
 forestFloor: visualize the randomForest topology
@@ -79,5 +80,5 @@ show3d_new(ff,1:2,col=Col,plot.rgl=list(size=5))
 
 \keyword{ multivariate }
 \keyword{ models }
-\keyword{ nonlinear }
-\keyword{ robust }
+\keyword{ non-linear }
+\keyword{ robust}
