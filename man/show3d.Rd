@@ -1,33 +1,51 @@
-\name{show3d_new}
-\alias{show3d_new}
+\name{show3d}
+\alias{show3d}
+\alias{show3d.forestFloor_regression}
+\alias{show3d.forestFloor_multiClass}
+
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 make 3d-plot of forestFloor topology
 }
 \description{
-2 features features(horizontal XY-plane) and one combined feature contribution (vertical Z-axis). Surface response layer will be estimated(gaussian-kNN by kknn package) and plotted alongside the datapoints. 3D grphic device is rgl.
+2 features features(horizontal XY-plane) and one combined feature contribution (vertical Z-axis). Surface response layer will be estimated(gaussian-kNN by kknn package) and plotted alongside the datapoints. 3D grphic device is rgl. Will dispatch methods show3d.forestFloor for regression and show3d_forestFloor_multiClass for classification.
 
 }
 \usage{
-show3d_new(ff,
-           Xi  = 1:2,
-           FCi = NULL,
-           col = "#12345678",    
-           sortByImportance = TRUE,
-           surface=TRUE,   
-           combineFC = sum,  
-           zoom=1.2,       
-           grid.lines=30,  
-           limit=3, 
-           kknnGrid.args = alist(),  
-           plot.rgl.args = alist(),  
-           surf.rgl.args = alist()   
-           )
+\method{show3d}{forestFloor_regression} (
+      x,
+      Xi  = 1:2,
+      FCi = NULL,
+      col = "#12345678",    
+      sortByImportance = TRUE,
+      surface=TRUE,   
+      combineFC = sum,  
+      zoom=1.2,       
+      grid.lines=30,  
+      limit=3, 
+      kknnGrid.args = alist(),  
+      plot.rgl.args = alist(),  
+      surf.rgl.args = alist(),
+      user.gof.args = alist(),
+      compute_GOF = TRUE,
+      ...)
 
+\method{show3d}{forestFloor_multiClass}(
+      x,
+      Xi,
+      FCi=NULL,
+      label.seq=NULL,
+      kknnGrid.args=list(NULL),
+      plot.rgl.args=list(),
+      compute_GOF=FALSE,
+      user.gof.args=list(NULL),
+      ...)
+    
 }
-\arguments{
-  
-  \item{ff}{
+
+
+\arguments{ 
+  \item{x}{
   forestFloor" class object
   }
   \item{Xi}{
@@ -45,7 +63,6 @@ show3d_new(ff,
   \item{sortByImportance}{
   booleen
   should indices count 'variable importance' order or matrix/data.frame order
-
   }
   \item{surface}{
   should a surface be plotted also
@@ -62,7 +79,6 @@ show3d_new(ff,
   \item{limit}{
   #sizing of grid does not concider outliers, outside limit of e.g. 3 sd deviations univariately
   }
-
   \item{kknnGrid.args}{
   argument list, any possiple arguments to kknn{kknn} \cr
   These default wrapper arguments can hereby be overwritten: \cr
@@ -74,8 +90,8 @@ show3d_new(ff,
     test=gridX         #do not change \cr
     ) \cr
   see kknn{kknn} to understand paremters. k is set by default automatically to a half times the square root of observations, which often gives a reasonable balance between robustness and  apdeptness. k neighbors and distance kernel can be changed be passing kknnGrid.args = alist(k=5,kernel="triangular",scale=FALSE), hereby will default k and default kernel be overwritten. Moreover the scale argument was not specified by this wrapper and therefore not conflicting, the argument is simply appended.
-  
   }
+  
   \item{plot.rgl.args}{
   pass argument to rgl::plot3d, can override any argument of this wrapper, defines plotting space and plot points.
   See plot3d for documentation of graphical arguments.
@@ -107,22 +123,34 @@ show3d_new(ff,
   see rgl::persp3d for other graphical arguments
   notice the surface is added onto plotting of points, thus can e.g. labels not be changed from here.
   }
+  
+  \item{label.seq}{
+a numeric vector describing which classes and in what sequence to plot. NULL is all classes ordered is in levels in x$Y of forestFloor_mulitClass object x. 
+  }
+  
+  \item{user.gof.args}{
+argument list passed to internal function ff2, which can modify how goodness-of-fit is computed. Number of neighobers and kernel can be set manually with e.g. list(kmax=40,kernel="gaussion"). Default pars should work already in most cases. Function ff2 computed leave-one-out CV prediction the feature contributions from the chosen context of the visualization.
+  }
+  
+  \item{compute_GOF}{
+Booleen TRUE/FALSE. Should the goodness of fit be computed and plotted is main of 3D plot? If false, no GOF input pars are useful.
 }
+  
+  \item{...}{
+  not used at the moment
+  }
+  
+}
+
+
+
 \details{
 show3d plot one or more combined feature contributions in the context of two features with points representing each data point.
-The input object must be of  forestFloor class, and should at least contain $X the data.frame of training data, $FCmatrix the feature contributions matrix.
-
-This wrapper function will first plot points. Any graphical argument of the 3D plotting scene can be forwarded through plot.rgl.args, see plot3d{rgl}. The transparency of points could e.g. be lowered from 0.4 to 0.1 and the size increased by using plot.rgl.args = alist(alpha=0.1,size=5)  \cr
-Secondly, a grid response surface layer will be estimated(gaussian-kNN), on basis of selected features and feature contributions. Any argument can passed to kknn{kknn} by kknnGrid.args, e.g. kknnGrid.args = alist(k=5, kernel="triangular") \cr
-Thirdly the surface grid is plotted. Any argument can be forwarded to persp3d{rgl} through surf.rgl.args. The surface layer could be coloured and made more transparent by passing surf.rgl.args = alist(alpha=0.2, col=c("red","green","blue")). Notice some graphical settings, should as axis labels(xlab) must be defined by plot.rgl.args. \cr
-
-policy of merging user arguments with wrapper arguments is handled by append.overwrite.alists{forestFloor}
-
+The input object must be a "forestFloor_regression" or "forestFloor_multiClass" S3 class object , and should at least contain $X the data.frame of training data, $FCmatrix the feature contributions matrix. Usually this object are formed with the function forestFloor having a random forest model fit as inpu. Actual visualization differs for each class.
 }
 
 \value{
 no value
-
 }
 
 \author{
@@ -160,17 +188,17 @@ Col = fcol(ff,3)
 plot(ff,col=Col) 
 
 #in 3D the interaction between X3 and X reveals itself completely
-show3d_new(ff,3:4,col=Col,plot.rgl=list(size=5)) 
+show3d(ff,3:4,col=Col,plot.rgl=list(size=5)) 
 
 #although no interaction, a joined additive effect of X1 and X2
 Col = fcol(ff,1:2,X.m=FALSE,RGB=TRUE) #colour by FC-component FC1 and FC2 summed
 plot(ff,col=Col) 
-show3d_new(ff,1:2,col=Col,plot.rgl=list(size=5)) 
+show3d(ff,1:2,col=Col,plot.rgl=list(size=5)) 
 
 #...or two-way gradient is formed from FC-component X1 and X2.
 Col = fcol(ff,1:2,X.matrix=TRUE,alpha=0.8) 
 plot(ff,col=Col) 
-show3d_new(ff,1:2,col=Col,plot.rgl=list(size=5))
+show3d(ff,1:2,col=Col,plot.rgl=list(size=5))
 
 }
 }

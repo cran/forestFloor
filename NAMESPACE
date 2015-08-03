@@ -1,7 +1,6 @@
 useDynLib(forestFloor)
 
 importFrom(Rcpp, evalCpp)
-importFrom(trimTrees, cinbag)
 import(kknn)
 
 importFrom(stats,
@@ -9,28 +8,58 @@ importFrom(stats,
            prcomp,
            predict)
 
+#graphicals
 importFrom(graphics,
            par,
            plot,
-           points)
+           points,
+           segments)
 
 importFrom(grDevices,
            rgb2hsv,
-           hsv)           
+           hsv,
+           col2rgb,
+           rgb)
 
 import(rgl)
+importFrom(ggplot2,
+           aes_string,
+           ggplot,
+           ggplotGrob,
+           geom_point,
+           xlab,
+           ylab)
 
-S3method(plot,forestFloor)
-S3method(print,forestFloor)
+importFrom(gridExtra,grid.arrange)
+
+#methods
+#plotting
+S3method(plot, forestFloor_regression)
+S3method(plot, forestFloor_multiClass)
+#printing
+S3method(print,forestFloor_regression)
+S3method(print,forestFloor_multiClass)
+#3d images
+S3method(show3d,  forestFloor_multiClass)
+S3method(show3d,  forestFloor_regression)
+
+
+
 
 export(forestFloor,
-       plot.forestFloor,
-       print.forestFloor,
        box.outliers,
        recTree,
        vec.plot,
        convolute_ff,
        convolute_ff2,
        convolute_grid,
-       show3d_new,
-       fcol)
+       #show3d_new,
+       fcol,
+       ggPlotForestFloor,
+       ggplotGrob,
+       #forestFloor_multiClass,
+       #plot.forestFloor_multiClass,#,
+       #show3d_forestFloor_multiClass),
+       show3d,
+       append.overwrite.alists,
+       plot_simplex3)
