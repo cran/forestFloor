@@ -1,4 +1,4 @@
-e05fda2d695e138d71a7715623fa75b9 *DESCRIPTION
+7235603c42c4f54bb964344ee6ca029f *DESCRIPTION
 157f5829bddee318418cde8066efd5be *NAMESPACE
 570b41b7f89f599b51afd91dc774725c *R/RcppExports.R
 301ea8f78e1076b6f35af35a1ad2edc1 *R/append.overwrite.alists.R
@@ -36,7 +36,7 @@ bb13cacfbb4cc10efafbca1320924ef7 *man/print.forestFloor.Rd
 00257dbd9124a9b0ed7b3297b2b4a91d *src/RcppExports.cpp
 7b1f681928590390622f590ec87661df *src/multiClass.cpp
 8375c09fd881b3e14cc776371a577de8 *src/testcpp_rec6.cpp
-45befd52bd7f56485d5f526a8152c742 *tests/ggplotUsage.R
-5c29360de20b84a2d097cdc0a45f25fd *tests/stdUsage.R
-90cc80d04d6ff457ff11c91e2f09e96b *tests/testBinaryClass.R
-71ddc8b3459331b70d61bc4fee4a3b17 *tests/testMultiClass.cpp.R
+77e077faaecd84e475333c49ecd766eb *tests/ggplotUsage.R
+325785d6c0e399b49a6ca5299316c5bf *tests/stdUsage.R
+0af8b65912db4135da758d41620b3089 *tests/testBinaryClass.R
+f4a33422b97dc286fc2f4fed082cde40 *tests/testMultiClass.cpp.R
