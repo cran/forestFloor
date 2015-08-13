@@ -1,7 +1,7 @@
 Package: forestFloor
 Type: Package
 Title: Visualizes Random Forests with Feature Contributions
-Version: 1.8.4
+Version: 1.8.5
 Date: 2015-08-2
 Author: Soeren Havelund Welling
 Maintainer: Soeren Havelund Welling <SOWE@DTU.DK>
@@ -13,6 +13,6 @@ License: GPL-2
 Imports: Rcpp (>= 0.11.3), rgl, kknn, ggplot2, gridExtra
 LinkingTo: Rcpp
 NeedsCompilation: yes
-Packaged: 2015-08-12 13:59:59 UTC; sorhawell
+Packaged: 2015-08-12 21:48:34 UTC; sorhawell
 Repository: CRAN
-Date/Publication: 2015-08-12 20:12:55
+Date/Publication: 2015-08-13 00:20:31
