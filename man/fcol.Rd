@@ -3,11 +3,11 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{
-Generic colour module for forestFloor obejcts
+Generic colour module for forestFloor objects
 }
 
 \description{
-This colour module colour observations by selected variables. PCA decomposes a selection more than three variables. Space can be inflated by random forest variable importance, to focus colouring on influential variables. Outliers(>3std.dev) are automatically supressed. Any colouring can be modified.
+This colour module colour observations by selected variables. PCA decomposes a selection more than three variables. Space can be inflated by random forest variable importance, to focus coloring on influential variables. Outliers(>3std.dev) are automatically suppressed. Any colouring can be modified.
 }
 
 \usage{
@@ -21,10 +21,10 @@ fcol(ff, cols = NULL, orderByImportance = NULL,  X.matrix = TRUE,
 \arguments{
   
   \item{ff}{
-  a obejct of class "forestFloor_regression" or "forestFloor_multiClass" or a matrix or a data.frame. No missing values. X.matrix must be set TRUE for "forestFloor_multiClass" as colouring by multiClass feature contributions is not supported.
+  a object of class "forestFloor_regression" or "forestFloor_multiClass" or a matrix or a data.frame. No missing values. X.matrix must be set TRUE for "forestFloor_multiClass" as colouring by multiClass feature contributions is not supported.
   }
   \item{cols}{
-  vector of indices of columns to colour by, will refer to ff$X if X.matrix=T and else ff$FCmatrix. If ff itself is a matrix or data.frame, indices will refer to these coloums
+  vector of indices of columns to colour by, will refer to ff$X if X.matrix=T and else ff$FCmatrix. If ff itself is a matrix or data.frame, indices will refer to these columns
   }
   
   \item{orderByImportance}{
@@ -32,7 +32,7 @@ fcol(ff, cols = NULL, orderByImportance = NULL,  X.matrix = TRUE,
   }
   
   \item{X.matrix}{
-  logical, true will use feature matrix false will use feature contribution matrix. Only relvant if input is forestFloor object.
+  logical, true will use feature matrix false will use feature contribution matrix. Only relevant if input is forestFloor object.
   }
   
   \item{hue}{
@@ -40,13 +40,13 @@ fcol(ff, cols = NULL, orderByImportance = NULL,  X.matrix = TRUE,
   colour wheel settings, will skew the colour of all observations without changing the contrast between any two given observations.
   }
   \item{saturation}{
-  value within [0,1], mean saturation of colours, 0 is greytone and 1 is maximal colourfull.
+  value within [0,1], mean saturation of colours, 0 is grey tone and 1 is maximal colourful.
   }
   \item{brightness}{
   value within [0,1], mean brightness of colours, 0 is black and 1 is lightly colours.
   }
   \item{hue.range}{
-  value within [0,1], ratio of colour wheel, small value is small slice of colour whell those little variation in colours. 1 is any possible colour except for RGB colour system.
+  value within [0,1], ratio of colour wheel, small value is small slice of colour wheel those little variation in colours. 1 is any possible colour except for RGB colour system.
   }
   \item{sat.range}{
   value within [0,1], for colouring of 2 or more variables, a range of saturation is needed to  obtain more degrees of freedom in the colour system. But as saturation of is preferred to be >.75 the range of saturation cannot here exceed .5. If NULL sat.range will set widest possible without exceeding range.
@@ -65,7 +65,7 @@ value within [0,1], for colouring of 3 or more variables, a range of brightness 
   }
   
   \item{byResiduals}{
-  logical, should coloring be residuals of main effect fit(overrides X.matrix=). If no fit has been computed "is.null(ff$FCfit)", a tempoarily main effect fit will be computed. Use ff = convolute_ff(ff) to only compute once and/or to modify fit parameters.
+  logical, should coloring be residuals of main effect fit(overrides X.matrix=). If no fit has been computed "is.null(ff$FCfit)", a temporarily main effect fit will be computed. Use ff = convolute_ff(ff) to only compute once and/or to modify fit parameters.
   }
   
   
@@ -81,12 +81,12 @@ value within [0,1], for colouring of 3 or more variables, a range of brightness 
 exponent to modify influence of imp.weight. 0 is not influence. -1 is counter influence. 1 is linear influence. .5 is square root influence etc..
   }
   \item{outlier.lim}{
-number from 0 to Inf. Any observation which univariately exceed this limit will be suppressed, as if it actually where on this limit. Normal limit is 3 standard deviations. Extreme outliers can otherwise reserve alone a very large part of a given linear colour gradient. This leeds to visulization where outlier have one colour and any other observation another but same colour.
+number from 0 to Inf. Any observation which univariately exceed this limit will be suppressed, as if it actually where on this limit. Normal limit is 3 standard deviations. Extreme outliers can otherwise reserve alone a very large part of a given linear colour gradient. This leads to visualization where outlier have one colour and any other observation another but same colour.
  }
  
  \item{RGB.exp}{
  value between ]1;>1]. Defines steepness of the gradient of the RGB colour system
- Close to one green midle area is missing.
+ Close to one green middle area is missing.
  For values higher than 2, green area is dominating
  }
 }
@@ -105,35 +105,73 @@ Soren Havelund Welling
 
 \examples{
 \dontrun{
+#example 1 - fcol used on data.frame or matrix
 library(forestFloor)
-obs=4000 
-vars = 6 
-X = data.frame(replicate(vars,rnorm(obs))) 
-Y = with(X, X1^2 + sin(X2*pi) + 2 * X3 * X4 + 0.5 * rnorm(obs)) 
+X = data.frame(matrix(rnorm(1000),nrow=1000,ncol=4))
+X[] = lapply(X,jitter,amount = 1.5)
 
-#grow a forest, remeber to include inbag
-rfo=randomForest::randomForest(X,Y,keep.inbag=TRUE,
-importance=TRUE,sampsize=700)
+#single variable gradient by X1 (Unique colour system)
+plot(X,col=fcol(X,1))
+#double variable gradient by X1 and X2 (linear colour system)
+plot(X,col=fcol(X,1:2))
+#triple variable gradient (PCA-decomposed, linear colour system)
+plot(X,col=fcol(X,1:3))
+#higher based gradient    (PCA-decomposed, linear colour system)
+plot(X,col=fcol(X,1:4))
 
-#compute topology
-ff = forestFloor(rfo,X)
 
-#print forestFloor
-print(ff) 
+#force linear col + modify colour wheel
+plot(X,col=fcol(X,
+                cols=1, #colouring by one variable
+                RGB=FALSE,
+                hue.range = 4, #cannot exceed 1, if colouing by more than one var
+                               #except if max.df=1 (limits to 1D gradient)
+                saturation=1,
+                brightness = 0.6))
 
-#plot partial functions of most important variables first
-Colours1=fcol(ff,1)
-plot(ff,plot_seq=NULL,col=Colours1)
+#colour by one dimensional gradient first PC of multiple variables
+plot(X,col=fcol(X,
+                cols=1:2, #colouring by multiple
+                RGB=TRUE, #possible because max.df=1
+                max.df = 1, #only 1D gradient (only first principal component)
+                hue.range = 2, #can exceed 1, because max.df=1
+                saturation=.95,
+                brightness = 0.8))
 
-#try to colour by first four variables, uses PCA du reduce system to 3-way gradient
-# (2.5 way more exactly as saturation and brightness by default have very limited ranges
-# to avoid gray - or overexposed color tones).
-Colours2=fcol(ff,1:4)
-plot(ff,plot_seq=NULL,external.col=Colours2) 
+##example 2 - fcol used with forestFloor objects
+library(forestFloor)
+library(randomForest)
+
+X = data.frame(replicate(6,rnorm(1000)))
+y = with(X,.3*X1^2+sin(X2*pi)+X3*X4)
+rf = randomForest(X,y,keep.inbag = TRUE,sampsize = 400)
+ff = forestFloor(rf,X)
+
+#colour by most important variable
+plot(ff,col=fcol(ff,1))
+
+#colour by first variable in data set
+plot(ff,col=fcol(ff,1,orderByImportance = FALSE),orderByImportance = FALSE)
+
+#colour by feature contributions
+plot(ff,col=fcol(ff,1:2,order=FALSE,X.matrix = FALSE,saturation=.95))
+
+#colour by residuals
+plot(ff,col=fcol(ff,3,orderByImportance = FALSE,byResiduals = TRUE))
+
+#colour by all features (most useful for colinear variables)
+plot(ff,col=fcol(ff,1:6))
+
+#disable importance weighting of colour
+#(important colours get to define gradients more)
+plot(ff,col=fcol(ff,1:6,imp.weight = FALSE)) #useless X5 and X6 appear more colourful
+
+#insert outlier in data set in X1 and X2
+ff$X[1,1] = 10; ff$X[1,2] = 10
+
+plot(ff,col=fcol(ff,1)) #colour not distorted, default: outlier.lim=3
+plot(ff,col=fcol(ff,1,outlier.lim = Inf)) #colour gradient distorted by outlier 
+plot(ff,col=fcol(ff,1,outlier.lim = 0.5)) #too little outlier.lim 
 
 }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

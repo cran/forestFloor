@@ -1,23 +1,21 @@
 \name{vec.plot}
 \alias{vec.plot}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{
-Compute and plot vector effct characteristics for a given multivariate model
+Compute and plot vector effect characteristics for a given multivariate model
 }
 \description{
-vec.plot visulizes the vector effect charecteristics of a given model. One(2D plot) or two(3D plot) variables are screened within the range of the training data, while remaining variables are fixed the univariate means of each them(as default). If remaining variables do not interact strongly with plotted variable(s), vec.plot is a good tool to break up a high-dimensional model topology in separate components.
+vec.plot visualizes the vector effect characteristics of a given model. Geometrically it corresponds to a specific 2D or 3D slice of a higher dimensional mapping structure.  One variable (2D plot) or two variables (3D plot) are screened within the range of the training data, while remaining variables are fixed at the univariate means (as default). If remaining variables do not interact strongly with plotted variable(s), vec.plot is a good tool to break up a high-dimensional model structure into separate components.
 }
 
 \usage{
 vec.plot(model,X,i.var,grid.lines=100,VEC.function=mean,
-         zoom=1,limitY=F,col="#20202050")
+         zoom=1,limitY=F,moreArgs=list(),...)
 }
 
 \arguments{
   \item{model}{
-  model, S3 or S4 object
-  model_object who have a defined method predict.model, which can accept arguments as showed for
-  randomForest e.g.
+  model_object which has a defined method predict.model, which can accept arguments as showed for randomForest e.g.
   library(randomForest)
   model = randomForest(X,Y)
   predict(model,X)
@@ -38,7 +36,7 @@ vec.plot(model,X,i.var,grid.lines=100,VEC.function=mean,
 
   }
   \item{VEC.function}{
-  function, method univariately a fixed value for any remaining variables(those not chosen by i.var). Default is mean.
+  function, establish one fixed value for any remaining variables(those not chosen by i.var). Default is to use the mean of variables.
   }
   
   \item{zoom}{
@@ -46,16 +44,19 @@ vec.plot(model,X,i.var,grid.lines=100,VEC.function=mean,
   }
   
   \item{limitY}{
-  boleen, if TRUE Y-axis is standardised for any variable. Useful for composite plots as shown in example.
+  boolean, if TRUE Y-axis is standardized for any variable. Useful for composite plots as shown in example.
   }
   
-  \item{col}{
-one colour or vector of colours of points passed to rgl::plot3d
+  \item{moreArgs}{
+  any lower level graphical args passed to rgl::surface3d or points depending on number of variables(length of i.var)
+  }
+  \item{...}{
+  any lower level graphical args passed to rgl::plot3d or plot depending on number of variables(length of i.var)
   }
   
 }
 \details{
-vec.plot visulizes the vector effect charecteristics of a given model. One(2D plot) or two(3D plot) variables are screened within the range of the training data, while remaining variables are fixed at the univariate means of each them(as default). If remaining variables do not interact strongly with plotted variable(s), vec.plot is a good tool to break up a high-dimensional model topology in separate components.
+vec.plot visualizes the vector effect characteristics of a given model. One(2D plot) or two(3D plot) variables are screened within the range of the training data, while remaining variables are fixed at the univariate means of each them(as default). If remaining variables do not interact strongly with plotted variable(s), vec.plot is a good tool to break up a high-dimensional model topology in separate components.
 }
 
 \value{
@@ -68,8 +69,14 @@ Soren Havelund Welling
 
 \examples{
 \dontrun{
+## avoid testing of rgl 3D plot on headless non-windows OS
+## users can disregard this sentence.
+if(!interactive() && Sys.info()["sysname"]!="Windows") skipRGL=TRUE
+library(randomForest)
+library(forestFloor)
+
 #simulate data
-obs=5000
+obs=2000
 vars = 6 
 X = data.frame(replicate(vars,rnorm(obs)))
 Y = with(X, X1^2 + 2*sin(X2*pi) + 2 * X3 * (X4+.5))
@@ -78,7 +85,7 @@ var(Y)/var(Y+Yerror)
 Y= Y+Yerror
 
 #grow a forest, remeber to include inbag
-rfo2=randomForest(X,Y,keep.inbag=TRUE,ntree=1000,sampsize=800)
+rfo2=randomForest(X,Y,keep.inbag=TRUE,sampsize=800)
 
 #plot partial functions of most important variables first
 pars=par(no.readonly=TRUE) #save previous graphical paremeters
@@ -90,7 +97,7 @@ par(pars) #restore
 for(i in 1:vars) vec.plot(rfo2,X,i,zoom=1.5,limitY=TRUE)
 
 #plotvariable X3 and X4 with vec.plot
-vec.plot(rfo2,X,c(3,4),zoom=1,grid.lines=100)
+Col = fcol(X,3:4)
+vec.plot(rfo2,X,3:4,zoom=1,grid.lines=100,col=Col)
 }
 }
-

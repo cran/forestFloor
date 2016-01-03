@@ -3,11 +3,11 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{
-Convolute SPECIFIC set of featureContributions by corresponding features with kknn-package.
+Low-level function to estimate a specific set of feature contributions by corresponding features with kknn-package. Used to estimate goodness-of-fit of surface in show3d.
 }
 
 \description{
-Only one convolution - but any kind. Whereas convolute_ff rather do batches of first order convolution.
+Low-level function to estimate a selected combination feature contributions as function of selected features with leave-one-out k-nearest neighbor.
 }
 
 \usage{
@@ -20,34 +20,32 @@ convolute_ff2(ff,
 \arguments{
   
 \item{ff}{
-  forestFloor object class "forestFloor_regression" or "forestFloor_multiClass" concisting of at least ff$X and ff$FCmatrix with two matrices of equal size
+  forestFloor object class "forestFloor_regression" or "forestFloor_multiClass" consisting of at least ff$X and ff$FCmatrix with two matrices of equal size
 }
 \item{Xi}{
-  integer vector, of col indices of ff$X to convolute by
+  integer vector, of column indices of ff$X to estimate by.
 }
 \item{FCi}{
- integer vector, of col indices of ff$FCmatrix. Those feature contributions to conbine(sum) and convolute. 
+ integer vector, column indices of features contributions in ff$FCmatrix to estimate. If more than one , these columns will be summed by samples/rows. If NULL then FCi will match Xi.
 }
 
 \item{k.fun}{
-  function to define k-neighbors to concider. n.obs is a constant as number of observations in ff$X. Hereby k neighbors is defined as a function k.fun of n.obs. To set k to a constant use e.g. k.fun = function() 10. k can also be overridden with   userArgs.kknn = alist(kernel="gaussian",kmax=10).
+  function to define k-neighbors to consider. n.obs is a constant as number of observations in ff$X. Hereby k neighbors is defined as a function k.fun of n.obs. To set k to a constant use e.g. k.fun = function() 10. k can also be overridden with   userArgs.kknn = alist(kernel="Gaussian",kmax=10).
 }
 
 \item{userArgs.kknn}{
-  argument list to pass to train.kknn function for each convolution. See (link) kknn.args.
-  arguments in this list have priority of any passed by default by this wrapper function.
-  see argument merger append.overwrite.alists
-  
+  argument list passed to train.kknn function for each convolution, see \code{\link{train.kknn}}. Arguments in this list have priority of any arguments passed by default by this wrapper function. See argument merger \code{\link{train.kknn}}
 }
   
 }
 \details{
-convolute_ff2 is a wrapper of train.kknn from kknn package to convolute featureContributions by their corresponding features. The output depends on paremets passer 
+convolute_ff2 is a wrapper of \code{\link{train.kknn}} to estimate feature contributions by a set of features.
+This function is e.g. used to estimate the visualized surface layer in \code{\link{show3d}} function. LOO CV is used to quantify how much of a feature contribution variation can by explained by a given surface. Can in theory also be used to quantify higher dimensional interaction effects, but randomForest do not learn much 3rd order (or higher) interactions. Do not support orderByImportance, thus Xi and FCi points to column order of training matrix X.
 
 }
 
 \value{
-an numeric vector of with the convoluted value for any observation
+an numeric vector with one estimated feature contribution for any observation
 }
 
 \author{
@@ -56,6 +54,9 @@ Soren Havelund Welling
 
 \examples{
 \dontrun{
+library(forestFloor)
+library(randomForest)
+library(rgl)
 #simulate data
 obs=2500
 vars = 6 
