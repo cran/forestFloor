@@ -28,6 +28,7 @@ void follow_path(
 //global R-objects
                  NumericMatrix X,                  // 1  X
                  NumericVector Y,
+                 bool majorityTerminal,
                  IntegerMatrix leftDaughter,       // 6  LD
                  IntegerMatrix rightDaughter,      // 7  RD
                  IntegerMatrix nodestatus,         // 8  nodestatus
@@ -53,6 +54,11 @@ void follow_path(
     }// divide sum of IB_preds with IB_count
   } else { 
     current_pred = nodepred(this_node,i_tree); //reuse node_pred from RF-object, only regression
+  }
+  
+  //if majorityTerminal overwrite with majority prediction
+  if(nodestatus(this_node,i_tree)==-1 && majorityTerminal) {
+    current_pred = nodepred(this_node,i_tree) -1;//0-1
   }
   
   
@@ -144,6 +150,7 @@ void follow_path(
 //pointers to global R-objects
         X,                  // 1  X
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus
@@ -171,6 +178,7 @@ void follow_path(
         IBs_rightnode,
         X,                  // 1  X
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus
@@ -205,6 +213,7 @@ void recTree(int  vars,               //local 3  nvar
             bool calculate_node_pred, //should node prediction
             NumericMatrix X,                  // 1  X
             NumericVector Y,
+            bool majorityTerminal,
             IntegerMatrix leftDaughter,       // 6  LD
             IntegerMatrix rightDaughter,      // 7  RD
             IntegerMatrix nodestatus,         // 8  nodestatus
@@ -276,6 +285,7 @@ void recTree(int  vars,               //local 3  nvar
 //pointers to global R-objects
         X,                  // 1  X dataset
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus
@@ -320,6 +330,7 @@ void follow_path2(
 //global R-objects
                  NumericMatrix X,                
                  IntegerVector Y,
+                 bool majorityTerminal,
                  IntegerMatrix leftDaughter,       
                  IntegerMatrix rightDaughter,     
                  IntegerMatrix nodestatus,         
@@ -343,15 +354,39 @@ void follow_path2(
     current_pred(Y(train_innodes(thisIB_count))) += 1; 
   }
   
+  
   //divide by total number of inbag examples in node to get class prevalencies
    //calculate local increment
   if(passed_IB_count>0) {
-    //Rprintff("IBn%d \n" ,passed_IB_count);
-    double passed_IB_count_double = passed_IB_count;
-    for(int iClass = 0; iClass < nClasses; iClass++) {
-      current_pred(iClass) /= passed_IB_count_double;
-      this_increment(iClass) = current_pred(iClass) - parent_pred(iClass);
-      //Rprintff("C%d , I %f  ",passed_IB_count,this_increment(iClass));
+    //if this node was flagged as terminal (-1) and majorityTerminal is true
+    if(nodestatus(this_node,i_tree)==-1 && majorityTerminal){
+      
+
+
+      //use randomForest Style, tree prediction by majority vote in terminal node
+      for(int iClass = 0; iClass < nClasses; iClass++) {
+        current_pred(iClass) = 0.0; //set current_pred to zero for all class 
+      }
+
+      //terminal pred cannot be recalculated as ties typically are broken randomly
+      //Is fetched from rf object, which does save majority vote for terminal nodes
+      //set majority class to P=100%
+      current_pred(nodepred(this_node,i_tree)-1) = 1.0;
+      //-1 as node_pred has R indices which starts from 1
+      
+      //update thisincrement
+      for(int iClass = 0; iClass < nClasses; iClass++) {
+        this_increment(iClass) = current_pred(iClass) - parent_pred(iClass);
+      }
+      
+    } else {
+      //This is not a terminal node and/or terminal sklearn.python style
+      //tree prediction by class prevalencies in terminal node
+      double passed_IB_count_double = passed_IB_count;
+      for(int iClass = 0; iClass < nClasses; iClass++) {
+        current_pred(iClass) /= passed_IB_count_double;
+        this_increment(iClass) = current_pred(iClass) - parent_pred(iClass);
+      }
     }
   }
   //Rprintff("\n");
@@ -467,6 +502,7 @@ void follow_path2(
 //pointers to global R-objects
         X,                  // 1  X
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus
@@ -496,6 +532,7 @@ void follow_path2(
         IBs_rightnode,
         X,                  // 1  X
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus
@@ -530,6 +567,7 @@ void multiTree(int  vars,               //local 3  nvar
             int  nClasses, //changed from calculate_node_pred
             NumericMatrix X,                  // 1  X
             IntegerVector Y,
+            bool majorityTerminal,
             IntegerMatrix leftDaughter,       // 6  LD
             IntegerMatrix rightDaughter,      // 7  RD
             IntegerMatrix nodestatus,         // 8  nodestatus
@@ -611,6 +649,7 @@ void multiTree(int  vars,               //local 3  nvar
 //pointers to global R-objects
         X,                  // 1  X dataset
         Y,
+        majorityTerminal,
         leftDaughter,       // 6  LD
         rightDaughter,      // 7  RD
         nodestatus,         // 8  nodestatus

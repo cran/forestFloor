@@ -1,9 +1,14 @@
 ##method to compute forestFloor_regression
 forestFloor_randomForest_regression <- function(rf.fit,
                                                 X,
+                                                Xtest=NULL,
                                                 calc_np = FALSE,
                                                 binary_reg = FALSE,
-                                                ...) { 
+                                                bootstrapFC = FALSE,
+                                                majorityTerminal = FALSE
+                                                ) { 
+  
+  #args_List = list(...)#place extra arguments here
   
   #check the rf.fitbject have a inbag
   if(is.null(rf.fit$inbag)) stop("input randomForest-object have no inbag, set keep.inbag=T,
@@ -12,10 +17,23 @@ forestFloor_randomForest_regression <- function(rf.fit,
                                  ..cinbag is from trimTrees package...
                                  error condition: if(is.null(rf.fit$inbag))")
   
-  #make node status a integer matrix
+  #merge X and Xtest if Xtest is provided
+  if(!is.null(Xtest)) {
+    isTrain       = c(rep(T,dim(X)[1]),rep(F,dim(Xtest)[1])) #mark OOB-CV FC and ext. test FC
+    merged.list = Xtestmerger(X,Xtest,rf.fit$inbag,rf.fit$y) #test for compatability and merge
+    X             = merged.list$bigX     #rbind X and Xtest (specific factor merging)
+    rf.fit$inbag  = merged.list$bigInbag #correct inbag matrix
+    rf.fit$y      = merged.list$bigy     #fill in dummy target values, not used as test is always OOB
+    rf.fit$oob.times  = c(rf.fit$oob.times,rep(rf.fit$ntree,sum(!merged.list$isTrain)))
+    
+  } else {
+    isTrain       = rep(T,dim(X)[1])
+  }
+  
+  
+  #make node status as integer matrix
   ns = rf.fit$forest$nodestatus
   storage.mode(ns) = "integer"
-  
   
   #translate binary classification RF-object, to regression mode
   if(rf.fit$type=="classification") {
@@ -35,15 +53,19 @@ forestFloor_randomForest_regression <- function(rf.fit,
            except cinbag() entails a more detailed inbag record, which is
            needed to estimate binary node probabilities.")
     }
-    if(!calc_np) stop("node predictions must be re-calculated for random forest of type classification, set calc_np=T)
-                      error conditions: if(!calc_np && rf.fit$type='classification')")
-    
+    if(!calc_np) {
+      #print("node predictions must be re-calculated for random forest of type classification, set calc_np=T)
+      #error conditions: if(!calc_np && rf.fit$type='classification')")
+      print(" ")
+      print("setting calc_np=TRUE")
+      calc_np=TRUE
+    }
     if(is.null(rf.fit$inbagCount)) inbag = rf.fit$inbag else inbag = rf.fit$inbagCount
+    
     } else {
       Y=rf.fit$y
       inbag = rf.fit$inbag
     }
-  
   
   #preparing data, indice-correction could be moved to C++
   #a - This should be fethed from RF-object, flat interface
@@ -104,6 +126,7 @@ forestFloor_randomForest_regression <- function(rf.fit,
     #passed by reference
     X=Xd,  #training data, double matrix [obs,vars] 
     Y=Yd,
+    majorityTerminal=majorityTerminal,
     leftDaughter = ld,  #row indices of left subnodes, integer matrix [nrnodes,ntree] 
     rightDaughter = rd, #...
     nodestatus = ns,    #weather node is terminal or not,      
@@ -116,7 +139,28 @@ forestFloor_randomForest_regression <- function(rf.fit,
     localIncrements = localIncrements #output is written directly to localIncrements from C++
   )
   
-  
+  if(bootstrapFC) {
+    #Compute FC for random bootstrapping or stratification over
+    #local increments from training set to root nodes, by bootstrap/stratificaiton
+    #compute LIs with inbag samples
+    
+    #manual root mean calculation
+    if(binary_reg) {
+    rootSum = apply(rf.fit$inbag*Y,2,sum) #vector, Y mean in each tree
+    rootMean = rootSum / apply(rf.fit$inbag,2,sum) # vector root predictions
+    } else{
+    #... or just fetch from rf object
+    rootMean = rf.fit$forest$nodepred[1,]
+    }
+    grandMean = mean(Y[isTrain]) #training set target mean, not including test
+    bootStrapLIs = rootMean - grandMean #vector, one LI for each tree
+    #sum LIs over OOB samples
+    OOB.indices = as.matrix(rf.fit$inbag == 0)
+    OOB.indices[!OOB.indices] = NA #ignore samples being inbag
+    OOB.bootStrapLIs = t(t(OOB.indices) * bootStrapLIs) #collect LI for each sample when OOB
+    bootstrapFC.col = apply(OOB.bootStrapLIs,1,mean,na.rm=TRUE) #sum LI into FCs
+    localIncrements = cbind(localIncrements,bootstrapFC=bootstrapFC.col) #bind bootstrap col
+  }
   
   #writing out list
   imp = as.matrix(rf.fit$importance)[,1]
@@ -124,7 +168,8 @@ forestFloor_randomForest_regression <- function(rf.fit,
              Y=Y,
              importance = imp,
              imp_ind = sort(imp,decreasing=TRUE,index.return=TRUE)$ix,
-             FCmatrix = localIncrements
+             FCmatrix = localIncrements,
+             isTrain = isTrain
   )
   class(out) = "forestFloor_regression"
   return(out)
