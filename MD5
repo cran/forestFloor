@@ -1,4 +1,4 @@
-8f549877b352efaf93625e3078cfe5c5 *DESCRIPTION
+c444981cc51513eb9044c0ad12a27125 *DESCRIPTION
 8a5b027fb82b9716e8c54361f1eb88d1 *NAMESPACE
 d65a9b13517111324037313ad8e20724 *NEWS
 f0958c2654f50d5639749e7ca888eff9 *R/RcppExports.R
@@ -14,13 +14,20 @@ c261461b315663fc95013d84355388d3 *R/checkPlotTest.R
 6d10357a5e2fed9e20025f111534c517 *R/forestFloor_randomForest_regression.R
 dac6ed8101b20a8312f2f89268f8148a *R/forestFloor_source.R
 a69f4fb949bbcc52a8ad456ab429446b *R/ggPlotForestFloor.R
-181640cea3deb6fc4c09a69916fe6b02 *R/plot.forestFloor_multiClass.R
+f3c9418cb6ae6f01c3da3c8b15eebfc4 *R/plot.forestFloor_multiClass.R
 329ee0911cffb27b77cfab0ccf446bf2 *R/plot.forestFloor_regression.R
 45ba4c4bac5de3e490c3676556daa11d *R/plot_simplex3.R
-b148dc228518821cec1c15e236d225e4 *R/print.forestFloor_multiClass.R
+a87f1dd3a3054f2368b378764bbe4874 *R/print.forestFloor_multiClass.R
 1227e35b594d48bde5077b43114f9006 *R/print.forestFloor_regression.R
 29adfb321b09df22551d5c589909fe63 *R/show3d.R
 81946493fafb2fd477a3b784edd506d8 *R/vec.plot.R
+263e8bc0fc0364daa45b3626d8efb882 *inst/CITATION
+bfa34c9d32a19985a13d1d5bd846ef77 *inst/examples/Scripts/forestFloor_RF_is_shallow.R
+098777e6b0e0c53b7b1085ae8b05854b *inst/examples/Scripts/forestFloor_cmc.R
+11c749de3ed754985f9de79e240a1a9e *inst/examples/Scripts/forestFloor_toyData.R
+d813816e78df8599a1395b8216d228c8 *inst/examples/Scripts/forestFloor_wwq.R
+f45cafe2f9dbb6c337df56226d3a0550 *inst/examples/ffgradientBoost.R
+958f081f9612b637a11e3056c7812cd1 *inst/examples/showpartial.R
 7f18e8858dffc356b0eb1463c6459604 *man/Xtestmerger.Rd
 4e25597b6d8cd727f32ac54e77b159a9 *man/append.overwrite.alists.Rd
 ed45dfb840cd7a1678d2616d8d1a037e *man/as.numeric.factor.Rd
@@ -31,7 +38,7 @@ dc507764568ec44c0fc7b9edf4e36ac4 *man/convolute_ff.Rd
 0df704f05e86026204285dc6b4764c5f *man/fcol.Rd
 508bfc79e6fd2566e4698461b7c3d519 *man/forestFloor-package.Rd
 1f728f5ec9dac193cc9b0f2a9c659f40 *man/forestFloor.Rd
-6bc9796661da8fcbbd851ae580c558bd *man/plot.forestFloor.Rd
+bca1e1ae868d6b4eaff84d3842c471d5 *man/plot.forestFloor.Rd
 9033fb286c6c31e88b3710304f7a48ec *man/plot_simplex3.Rd
 a582b1e5a96416b581b3c7d6503d7a14 *man/print.forestFloor.Rd
 0c5098be84716a905de334b796be836a *man/recTree.Rd
@@ -43,5 +50,5 @@ dcc827dbe3dac0045a87a5301c5c38b0 *tests/allExamples.R
 40485d05b30bbad631f5ffb5ff9b4c34 *tests/rfPermute_supported.R
 7dc4af6b157bc2ba201dec629ad93a59 *tests/stdUsage.R
 7738eaf5dfd22b8391c184c7eb848109 *tests/testBinaryClass.R
-34a2c452ac5f206dd809a1bfbbe13334 *tests/testMultiClass.cpp.R
+b42c659fa1b8740934b59e8ad3ce0c6f *tests/testMultiClass.cpp.R
 3cfe70f877bdcedcab6dd396810fd4ce *tests/test_Xtestmerger.R

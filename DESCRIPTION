@@ -1,8 +1,8 @@
 Package: forestFloor
 Type: Package
 Title: Visualizes Random Forests with Feature Contributions
-Version: 1.9.3
-Date: 2016-03-28
+Version: 1.9.5
+Date: 2016-06-01
 Author: Soeren Havelund Welling
 Maintainer: Soeren Havelund Welling <SOWE@DTU.DK>
 Depends:
@@ -14,6 +14,6 @@ URL: http://forestFloor.dk
 Imports: Rcpp (>= 0.11.3), rgl, kknn
 LinkingTo: Rcpp
 NeedsCompilation: yes
-Packaged: 2016-03-28 21:15:05 UTC; soren
+Packaged: 2016-06-01 11:28:40 UTC; SQHW
 Repository: CRAN
-Date/Publication: 2016-03-29 10:48:31
+Date/Publication: 2016-06-01 14:11:11
