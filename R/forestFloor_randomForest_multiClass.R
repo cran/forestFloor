@@ -5,9 +5,11 @@ forestFloor_randomForest_multiClass <- function(rf.fit,
                                      calc_np = TRUE,
                                      binary_reg = FALSE,
                                      bootstrapFC = FALSE,
-                                     majorityTerminal = TRUE
+                                     majorityTerminal = TRUE,
+                                     ...
                                      ) { 
-
+  otherArgs = list(...)
+  
   #translate binary classification RF-object, to regression mode
   if(rf.fit$typ!="classification") stop("this function only handles type 'classification',
  but rf.fit$type!= 'classification'")
@@ -185,8 +187,22 @@ with randomForest")
     localIncrements = array(localIncrements,dim=c(obs,vars,nClasses))
   }
   
+  #class argument will not work if type is not 1
+  if(!is.null(otherArgs$impClass)) {
+    otherArgs$impType = 1
+    print("class has been set to something, passing along type=1")
+  }
+  
+  
+  #randomForest::importance to fetch importance
+  imp = forestFloor::importanceExportWrapper( #got a lot of funnies, this wrapper should catch them
+    rf     = rf.fit,
+    type  = otherArgs$impType,
+    class = otherArgs$impClass,
+    scale = otherArgs$impScale 
+  )
+  
   #writing out list
-  imp = as.matrix(rf.fit$importance)[,1]
   out = list(X=as.data.frame(X), #cast as data.frame
              Y=rf.fit$y,
              importance = imp,
@@ -196,6 +212,14 @@ with randomForest")
              isTrain = isTrain
              #  all = mget(ls()) #export everything in list
   )
+  
+  # #check that only one importance column is exported
+  # if(!is.null(dim(out$importance)) && dim(out$importance)[2]!=1) {
+  #   warning("only one importance measure should be exported, 
+  #           set type=1, class=NULL, scale=FALSE")
+  #   out$importance = randomForest::importance(x=rf.fit,type=1,scale=FALSE)
+  #   out$imp_ind = imp_ind = sort(imp,decreasing=TRUE,index.return=TRUE)$ix
+  # }
 
   class(out) = "forestFloor_multiClass"
   return(out)

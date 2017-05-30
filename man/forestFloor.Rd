@@ -18,18 +18,19 @@ forestFloor(rf.fit, X, Xtest=NULL, calc_np = FALSE, binary_reg = FALSE,
 \arguments{
 \item{rf.fit}{
 rf.fit, a random forest object as the output from randomForest::randomForest\cr
+Train objects from caret::train is also experimentally supported, see how in the last use example
 }
 
 \item{X}{
 data.frame of input variables, numeric(continuous), discrete(treated as continuous) or factors(categorical).
-n_rows observations and n_columns features
-X MUST be the same data.frame as used to train the random forest, see above item.
+n_rows observations and n_columns features. 
+X MUST be the exact same data.frame as used to train the random forest, see above item. If rows are re-ordered, the observations will not match the inbag-matrix resulting in distorted feature contributions. 
 }
 
 \item{Xtest}{
 data.frame of input variables, numeric(continuous), discrete(treated as continuous) or factors(categorical).
 n_rows test_examples and n_columns features
-Xtest MUST have same number and order of columns(variables) as X. Number of rows can vary.
+Xtest MUST have same number and order of columns(variables) as X. Number of rows and order can vary.
 }
 
 \item{calc_np}{
@@ -49,6 +50,8 @@ boolean, if TRUE an extra column is added to FCmatrix or one extra matrix to FCa
 For classification it is possible to manually set majorityTerminal=FALSE. For the randomForest classification implementation majorityTerminal is by default set to TRUE, as each tree uses majority vote within terminal nodes. In other implemenations terminal nodes are not neccesarily reduced by majority voting before aggregetion on ensemble level.
 
 majorityTerminal, does not apply to random forest regressions.
+
+impType = 1 or 2 and impScale = T / F and impClass = "factor level name" can modify what type importance to export from randomForest object to forestFloor object. imp-arguments are passed to \code{\link{importance}}
 }
 
 
@@ -58,11 +61,11 @@ majorityTerminal, does not apply to random forest regressions.
 \details{
   forestFloor computes out-of-bag cross validated feature contributions for a "randomForest" class object. Other packages will be supported in future, mail me a request. forestFloor guides you to discover the structure of a randomForest model fit. Check examples of how latent interactions can be identified with colour gradients.
   
-What is FC?: Feature contributions are the sums over all local increments for each observation for each feature divided by the number of trees. A local increment is the change of node prediction from parent to daughter node split by a given feature. Thus a feature contribution summarizes the average outcome for all those times a given sample was split by a given feature. forestFloor use inbag samples to calculate local increments, but only sum local increments over out-of-bag samples divided with OOBtimes. OOBtimes is the number of times a given observation have been out-of-bag. which is roundly ntrees / 3. In practice this removes a substantial self-leverage of samples to the corresponding feature contributions. Hereby visualizations becomes less noisy.
+What is FC, feature cotributions?: First, a local increment is the change of node prediction from parent to daughter node split by a given feature. Feature Contributions are the sums over all local increments for each observation for each feature divided by the number of trees.  Thus a feature contribution summarizes the average outcome for all those times a given observation was split by a given feature. forestFloor use the inbag observations to calculate local increments, but only sum local increments over out-of-bag observations divided with OOBtimes. OOBtimes is the number of times a given observation have been out-of-bag, which is around ntrees / 3. In practice this removes a substantial self-leverage of observations to the corresponding feature contributions. Hereby visualizations becomes less noisy.
   
-What is FC used for?: Feature contributions is smart way to decompose a RF mapping structure into additive components. Plotting FC's against variables values yields at first glance plots similar to marginal-effect plots, partial dependence plots and vector effect characteristic plots. This package forsetFloor, make use of feature contributions to separate main effects and identify plus quantify latent interactions. The advantages of forestFloor over typical partial.dependence plots are: (1) Easier to identify interactions. (2) Training samples is a part of plot, such that extrapolated model structure can be disregarded. (3) The "goodness of visualization" (how exactly the plot represent the higher dimensional model structure) can be quantified. (4) Cheerful colours and 3D graphics thanks to the rgl package.  
+What is FC used for?: Feature contributions is smart way to decompose a RF mapping structure into additive components. Plotting FC's against variables values yields at first glance plots similar to marginal-effect plots, partial dependence plots and vector effect characteristic plots. This package forestFloor, makes use of feature contributions to separate main effects and identify plus quantify interactions. The advantages of forestFloor over typical partial.dependence plots are: (1) Easier to identify interactions. (2) feature contributions do not extrapolate the training observations as partial.dependence will do for correlated features. (3) The "goodness of visualization" (how exactly the plot represent the higher dimensional model structure) can be quantified. (4) Cheerful colours and 3D graphics thanks to the rgl package.  
   
-RF regression takes input features and outputs a target value. RF classification can output a pseudo probability vector with predicted class probability for each sample. The RF mapping topology of classification is different than for regression as the output is no longer a scalar, the output is a vector with predicted class probability for each class. For binary classification this topology can be simplified to a regression-like scalar as the probability of class_1 = 1 - class_2. Set binary_reg=TRUE for a binary RF classification to get regression like visualizations. For multi-class the output space is probability space where any point is a probability prediction of each target class.
+RF regression takes input features and outputs a target value. RF classification can output a pseudo probability vector with predicted class probability for each prediction. The RF mapping dimensionality for classification is different than for regression, as the output is no longer a scalar. The output is a vector with predicted class probability for each class. For binary classification this mapping can be simplified to a regression-like scalar as the probability of class_1 = 1 - class_2. Set binary_reg=TRUE for a binary RF classification to get regression like visualizations. For multi-class the output space is a probability space where any point is a probability prediction of each target class.
 
 To plot forestFloor objects use plot-method plot.forestFloor and function show3d. Input parameters for classification or regression are not entirely the same. Check help-file \code{\link{plot.forestFloor}} and \code{\link{show3d}}. For 3-class problems the special function \code{\link{plot_simplex3}} can plot the probability predictions in a 2D phase diagram (K-1 simplex).
 }
@@ -108,7 +111,7 @@ Soren Havelund Welling
 }
 
 \note{
-check out more guides at forestFloor.dk 
+for more information goto forestFloor.dk 
 }
 
 \seealso{
@@ -242,6 +245,40 @@ plot(ff,col=Col)   #plot features
 
 #interfacing with rgl::plot3d
 show3d(ff,1:2,col=Col,plot.rgl.args = list(size=2,type="s",alpha=.5))
+
+
+##example with caret
+
+rm(list=ls())
+library(caret)
+library(forestFloor)
+N = 1000
+vars = 15
+noise_factor = .3
+bankruptcy_baserate = 0.2
+X = data.frame(replicate(vars,rnorm(N)))
+y.signal = with(X,X1^2+X2^2+X3*X4+X5+X6^3+sin(X7*pi)*2) #some non-linear f
+y.noise = rnorm(N) * sd(y.signal) * noise_factor
+y.total = y.noise+y.signal
+y = factor(y.total>=quantile(y.total,1-bankruptcy_baserate))
+
+set.seed(1)
+caret_train_obj <- train(
+  x = X, y = y, 
+  method = "rf",
+  keep.inbag = TRUE,  #always set keep.inbag=TRUE passed as ... parameter to randomForest
+  ntree=50, #speed up this example, if set too low, forestFloor will fail
+ )
+
+rf = caret_train_obj$finalModel #extract model
+if(!all(rf$y==y)) warning("seems like training set have been resampled, using smote?")
+ff = forestFloor(rf,X,binary_reg = T)
+
+#... or simply pass train
+ff = forestFloor(caret_train_obj,X,binary_reg = T)
+plot(ff,1:6,plot_GOF = TRUE)
+
+
 }
 }
 
